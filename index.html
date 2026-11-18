@@ -13,6 +13,7 @@
   --ink: oklch(0.30 0.02 60); --ink-2: oklch(0.45 0.03 60);
   --bordo: oklch(0.40 0.08 30); --bordo-2: oklch(0.48 0.09 32);
   --line: oklch(0.86 0.02 80); --head-bg: oklch(0.90 0.025 85);
+  --flash: oklch(0.88 0.08 80);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -22,6 +23,19 @@ a{color:var(--bordo-2)}
 :focus-visible{outline:2px solid var(--bordo-2);outline-offset:2px}
 button{cursor:pointer;font:inherit}
 .layout{display:grid;grid-template-columns:320px 1fr;min-height:100dvh}
+/* ---------- night mode ---------- */
+#theme{position:fixed;top:12px;right:12px;z-index:40;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:8px 12px;font-family:"Spectral",serif;font-size:14px;box-shadow:0 2px 10px oklch(0.3 0.02 60 / .18)}
+#theme:hover{border-color:var(--bordo-2)}
+body.night{
+  --paper: oklch(0.19 0.015 85); --paper-2: oklch(0.235 0.018 85);
+  --ink: oklch(0.87 0.02 75); --ink-2: oklch(0.68 0.025 70);
+  --bordo: oklch(0.70 0.09 28); --bordo-2: oklch(0.77 0.10 30);
+  --line: oklch(0.33 0.02 70); --head-bg: oklch(0.28 0.025 65);
+  --flash: oklch(0.45 0.09 70);
+}
+body.night tbody tr:nth-child(even){background:oklch(0.27 0.02 70)}
+body.night #hits .h mark{background:oklch(0.5 0.1 70);color:oklch(0.95 0.02 90)}
+body.night nav a.cl.on{color:oklch(0.96 0.015 90)}
 /* ---------- sidebar ---------- */
 aside{border-right:1px solid var(--line);background:var(--paper-2);padding:18px 14px;height:100dvh;overflow-y:auto;position:sticky;top:0}
 aside h1{font-size:19px;color:var(--bordo);margin-bottom:4px}
@@ -77,6 +91,7 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:var(-
 </head>
 <body>
 <button id="burger" class="burger" aria-label="Меню глав">☰ Главы</button>
+<button id="theme" aria-label="Переключить ночной режим">☾ Ночь</button>
 <div class="layout">
 <aside>
   <h1>НРИ по ББИ</h1>
@@ -125,7 +140,7 @@ function show(pi, ci, anchor){
   document.querySelectorAll('nav a.cl').forEach(a => a.classList.toggle('on', a.dataset.pi == pi && a.dataset.ci == ci));
   if (anchor) {
     const el = document.getElementById(anchor);
-    if (el) { el.scrollIntoView(); el.style.background='oklch(0.88 0.08 80)'; setTimeout(()=>el.style.background='', 1600); return; }
+    if (el) { el.scrollIntoView(); el.style.background='var(--flash)'; setTimeout(()=>el.style.background='', 1600); return; }
   }
   window.scrollTo(0,0);
   aside.classList.remove('open');
@@ -173,6 +188,21 @@ nav.addEventListener('click', e => {
 });
 document.getElementById('burger').addEventListener('click', () => aside.classList.toggle('open'));
 window.addEventListener('hashchange', route);
+
+// ночной режим
+const themeBtn = document.getElementById('theme');
+function applyTheme(night){
+  document.body.classList.toggle('night', night);
+  themeBtn.textContent = night ? '\u2600 \u0414\u0435\u043d\u044c' : '\u263E \u041d\u043e\u0447\u044c';
+  try { localStorage.setItem('nri-theme', night ? 'night' : 'day'); } catch(e) {}
+}
+{
+  let saved = null;
+  try { saved = localStorage.getItem('nri-theme'); } catch(e) {}
+  applyTheme(saved ? saved === 'night' : matchMedia('(prefers-color-scheme: dark)').matches);
+}
+themeBtn.addEventListener('click', () => applyTheme(!document.body.classList.contains('night')));
+
 renderNav('');
 route();
 </script>
